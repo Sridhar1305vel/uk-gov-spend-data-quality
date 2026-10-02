@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+outputs/*
+!outputs/.gitkeep
+outputs_sample/
+data/raw/*
+!data/raw/.gitkeep
+
+finish_hand_check.py
+show_pairs.py
+show_todo.py
+find_lines.py

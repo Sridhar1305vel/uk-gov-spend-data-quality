@@ -1,0 +1,90 @@
+{
+  "entity": [
+    "department",
+    "department family",
+    "entity",
+    "organisation",
+    "organization",
+    "body",
+    "dept",
+    "departmental family"
+  ],
+  "txn_date": [
+    "date",
+    "payment date",
+    "transaction date",
+    "invoice date",
+    "posting date",
+    "paid date",
+    "date of payment"
+  ],
+  "expense_type": [
+    "expense type",
+    "expense category",
+    "expenditure category",
+    "expenditure type",
+    "expense type name",
+    "summary expense type",
+    "category",
+    "nominal description",
+    "account description",
+    "subjective"
+  ],
+  "expense_area": [
+    "expense area",
+    "cost centre",
+    "cost center",
+    "directorate",
+    "business area",
+    "expenditure area",
+    "cost centre description"
+  ],
+  "supplier": [
+    "supplier",
+    "supplier name",
+    "vendor",
+    "vendor name",
+    "payee",
+    "beneficiary",
+    "supplier / payee",
+    "name of supplier"
+  ],
+  "transaction_ref": [
+    "transaction number",
+    "transaction no",
+    "transaction ref",
+    "transaction reference",
+    "trans no",
+    "voucher no",
+    "voucher number",
+    "payment reference",
+    "invoice number",
+    "document no",
+    "document number",
+    "reference",
+    "ref"
+  ],
+  "amount": [
+    "amount",
+    "value",
+    "net amount",
+    "gross amount",
+    "payment amount",
+    "total amount",
+    "amount gbp",
+    "amount in gbp",
+    "spend",
+    "invoice value",
+    "£"
+  ],
+  "description": [
+    "description",
+    "purpose",
+    "narrative",
+    "item description",
+    "line description",
+    "expense description",
+    "details",
+    "item text"
+  ]
+}

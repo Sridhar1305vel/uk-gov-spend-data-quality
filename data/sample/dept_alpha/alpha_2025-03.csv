@@ -1,0 +1,14 @@
+"Alpha Department - spend over 25,000"
+Published under the Open Government Licence (test fixture)
+
+Department,Entity,Date,Expense Type,Expense Area,Supplier,Transaction Number,Amount (£)
+Alpha,Alpha Core,03/03/2025,Consultancy,Digital,Acme Consulting Ltd,TX001,"£50,000.00"
+Alpha,Alpha Core,03/03/2025,Consultancy,Digital,Acme Consulting Ltd,TX001,"£50,000.00"
+Alpha,Alpha Core,05/03/2025,Consultancy,Digital,ACME CONSULTING LIMITED,TX002,"£30,000.00"
+Alpha,Alpha Core,15/03/2025,Consultancy,Digital,Acme Consulting Ltd.,TX003,"£30,000.00"
+Alpha,Alpha Core,10/03/2025,Supplies,Estates,Beta Supplies PLC,TX004,"(27,500.00)"
+Alpha,Alpha Core,11/03/2025,Supplies,Estates,,TX005,"£40,000.00"
+Alpha,Alpha Core,12/07/2025,Rent,Estates,Gamma Ltd,TX006,"£26,000.00"
+Total,,,,,,,"£247,500.00"
+Alpha,Alpha Core,14/03/2025,Rent,Estates,Delta Services,TX007,n/a
+Alpha,Alpha Core,16/03/2025,Rent,Estates,Epsilon Ltd,TX009,"£28,000.00",EXTRA
