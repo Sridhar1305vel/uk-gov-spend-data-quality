@@ -6,11 +6,22 @@ lost, and flags data-quality problems for review.
 
 **Why this project exists:** every department publishes the same kind of data with different
 column names, encodings, delimiters, date formats and amount formats. Cleaning that reliably,
-and *proving* the result is complete, is exactly the work of a data-quality / reconciliation analyst.
+and *proving* the result is complete, is the core of data-quality and reconciliation work.
 
-> **Status of this repo:** the code and its 15 unit tests are complete and pass on a small
-> synthetic *test fixture*. **No real-data results exist yet.** You generate those by running the
-> pipeline on real files (steps below). Never quote fixture numbers as findings.
+## Results (real data)
+
+- **Scope:** 3 departments (DfT, HMRC, Cabinet Office), 36 files, 52,703 rows, January 2025 to mid-2026
+- **Reconciliation:** all 36 files reconciled (rows read = rows loaded + rejected, and control totals match)
+- **Flag rate:** 2.31% of rows flagged as review candidates, not confirmed errors
+- **Hand check:** a 15-row sample traced to the raw files. 8 real issues (all 7 exact duplicates and the zero-amount row), 2 false alarms, 5 unresolved. Probable-duplicate flags were the noisiest rule.
+
+![Data quality overview](docs/dashboard_1.png)
+![Spend and concentration](docs/dashboard_2.png)
+![Review queue](docs/dashboard_3.png)
+
+More: [docs/CASE_STUDY.md](docs/CASE_STUDY.md) | [docs/quality_report.md](docs/quality_report.md) | `UK_Gov_Spend_Quality.pbix`
+
+The code and its 15 unit tests also pass on a small synthetic fixture (used for testing only).
 
 ---
 
@@ -35,58 +46,44 @@ python tests/fixtures.py data/sample              # tiny synthetic fixture
 python run_pipeline.py --raw data/sample --out outputs_sample   # smoke test only
 ```
 
-## Run it on real data (this is the step that makes it a portfolio project)
+## Reproduce it on real data
 
-1. Go to **data.gov.uk** and search "spend over £25,000". Pick **3 to 5 departments**
-   (examples that publish this: Cabinet Office, Department for Transport, Cafcass,
-   Department for Work and Pensions, Defra). All are under the Open Government Licence.
-2. Download **12 months** of CSVs per department. Pick departments whose files *look different*:
-   differing formats is the whole point.
+1. Go to **data.gov.uk** and search "spend over £25,000". Pick departments that publish it
+   (for example Cabinet Office, Department for Transport, HMRC). All are under the Open Government Licence.
+2. Download the monthly CSVs for each department.
 3. Put them in `data/raw/<department_name>/` (one sub-folder per department; the folder name becomes the department).
    Some departments publish `.xlsx`; those work too. Convert `.ods` or HTML to CSV first.
 4. Run:
    ```bash
    python run_pipeline.py --raw data/raw --out outputs
    ```
-5. Open `outputs/quality_report.md`. Then:
-   - Check the **"Files processed … failed"** line and the **"Columns not mapped"** section. Real
-     files will use header names I could not predict. Add them to `config/column_aliases.json`
-     and re-run until every file loads. *This iteration is expected and is part of the story.*
+5. Open `outputs/quality_report.md`, then:
+   - Check the **"Files processed … failed"** line and the **"Columns not mapped"** section. Add any new
+     header names to `config/column_aliases.json` and re-run until every file loads.
    - Check `outputs/powerbi/reconciliation.csv`: every file should show `reconciled = True`.
-   - Inspect `outputs/powerbi/review_queue.csv`. Open at least 20 flagged rows in the original
-     files and **verify them by hand**. Note how many were genuine data issues versus
-     legitimate payments. That honest false-positive rate is worth more than a big flag count.
-6. Build a Power BI report from `outputs/powerbi/*.csv` (flag summary, department quality
-   comparison, monthly spend, supplier concentration, review queue). Publish a screenshot.
+   - Inspect `outputs/powerbi/review_queue.csv` and verify flagged rows against the original files
+     (`make_hand_check.py` draws a sample for this).
+6. Load `outputs/powerbi/*.csv` into Power BI to rebuild the dashboard.
 
-## Rules for putting this on your resume
-
-- **Only use numbers from your own real-data run.** The resume bullets in
-  `docs/CASE_STUDY_TEMPLATE.md` have blanks on purpose.
-- Say **"review candidates"**, not "fraud" or "errors", unless you verified them.
-- Don't claim cloud, dbt or PostgreSQL experience from this repo. It uses SQLite. If you later
-  port it (see below), then add those words.
-- Keep the fixture clearly labelled as a test fixture.
-
-## Design decisions and known limitations (write these in your case study)
+## Design decisions and known limitations
 
 - **Day-first dates** are assumed for ambiguous `dd/mm` values (UK data). A file using US order would be mis-parsed.
 - **Supplier clustering** normalises case, punctuation and legal suffixes, then merges names with
   difflib similarity ≥ 0.92 within blocks sharing the first four characters. Spellings that
   differ in their first four characters are not merged. Two different companies with very similar
-  names could be merged. Tune the threshold on real data and report what you found.
+  names could be merged.
 - **Probable duplicates** use a 14-day window. Recurring legitimate payments (rent, framework
-  contracts) will trigger some. That is why they are labelled "review candidates".
+  contracts, regular batches) trigger many false alarms. That is why they are labelled "review candidates".
 - **Outlier check** is a robust z-score on log amounts per department and is only a screening aid.
 - **Filename-derived month** is used for the "date outside file period" check, and only when the filename contains a recognisable month.
 - Files that fail header detection are reported in the `files` table, not skipped silently.
 
-## Optional extensions (do one, then you may legitimately list it)
+## Possible extensions
 
-1. **PostgreSQL port:** load `spend` into PostgreSQL and run `analysis.sql` there (the SQL uses standard CTEs and window functions; minor syntax changes only). Lets you honestly say "PostgreSQL".
-2. **dbt-style tests:** express the checks as SQL tests (unique, not null, accepted range) and run them with dbt Core against DuckDB or PostgreSQL.
-3. **Cloud warehouse:** load the CSV outputs to BigQuery (free sandbox) and rebuild the views there.
-4. **Streamlit dashboard** of the review queue with a "confirmed / false positive" label column, then report precision per check.
+1. **PostgreSQL port:** load `spend` into PostgreSQL and run `analysis.sql` there (standard CTEs and window functions; minor syntax changes only).
+2. **dbt-style tests:** express the checks as SQL tests (unique, not null, accepted range).
+3. **Cloud warehouse:** load the CSV outputs to BigQuery and rebuild the views there.
+4. **Supplier exception list** for regular repeat payments, to cut probable-duplicate false alarms.
 
 ## Project layout
 
@@ -99,10 +96,14 @@ src/spendqa/report.py        CSV exports, charts, markdown report
 src/spendqa/sql/analysis.sql SQL views
 tests/                       unit and end-to-end tests (synthetic fixture)
 run_pipeline.py              command-line entry point
-docs/CASE_STUDY_TEMPLATE.md  write-up and resume-bullet template
+make_hand_check.py           draws a sample of the review queue for manual checking
+fill_hand_check.py           looks sample rows up in the raw files
+docs/CASE_STUDY.md           results, hand check and limitations
+docs/quality_report.md       generated findings report
+UK_Gov_Spend_Quality.pbix    Power BI dashboard
 ```
 
-## Data licence
+## Licence
 
-Spend data is published by UK government departments under the Open Government Licence v3.0.
-Cite the dataset pages you used in your case study.
+Code: MIT (see LICENSE).
+Data: UK government departments, Open Government Licence v3.0.
