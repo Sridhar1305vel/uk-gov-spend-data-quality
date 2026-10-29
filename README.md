@@ -1,5 +1,7 @@
 # UK Government Spend: Data-Quality & Reconciliation Pipeline
 
+![Tests](https://github.com/Sridhar1305vel/uk-gov-spend-data-quality/actions/workflows/tests.yml/badge.svg)
+
 A pipeline that takes the **real, messy "spend over £25,000" files** that UK government
 departments publish every month, forces them into one clean schema, proves that no rows were
 lost, and flags data-quality problems for review.
@@ -8,10 +10,20 @@ lost, and flags data-quality problems for review.
 column names, encodings, delimiters, date formats and amount formats. Cleaning that reliably,
 and *proving* the result is complete, is the core of data-quality and reconciliation work.
 
+## Results (real data)
 
-![Tests](https://github.com/Sridhar1305vel/uk-gov-spend-data-quality/actions/workflows/tests.yml/badge.svg)
+- **Scope:** 3 departments (DfT, HMRC, Cabinet Office), 36 files, 52,702 rows, January 2025 to August 2026
+- **Reconciliation:** all 36 files reconciled (rows read = rows loaded + rejected, and control totals match)
+- **Flag rate:** 2.31% of rows (1,216) carry a high or medium flag. These are review candidates, not confirmed errors
+- **Hand check:** a 15-row sample traced to the raw files. 8 real issues (all 7 exact duplicates and the zero-amount row), 2 false alarms, 5 unresolved. Probable-duplicate flags were the noisiest rule.
 
-   One-line description of the project...
+![Data quality overview](docs/dashboard_1.png)
+![Spend and concentration](docs/dashboard_2.png)
+![Review queue](docs/dashboard_3.png)
+
+More: [docs/CASE_STUDY.md](docs/CASE_STUDY.md) | [docs/quality_report.md](docs/quality_report.md) | `UK_Gov_Spend_Quality.pbix`
+
+The code and its 15 unit tests also pass on a small synthetic fixture (used for testing only).
 
 ## Quick start (Docker)
 
@@ -29,6 +41,7 @@ docker compose run --rm demo
 ```
 
 The report and database are written to `outputs_sample/`.
+`data/sample` is a tiny synthetic fixture, so the numbers in `outputs_sample/` are **not** real spend.
 
 **Run on the real data:**
 
@@ -62,22 +75,6 @@ python -m pytest -v
 ```
 
 Tests also run automatically on every push through GitHub Actions.
-## Results (real data)
-
-- **Scope:** 3 departments (DfT, HMRC, Cabinet Office), 36 files, 52,703 rows, January 2025 to mid-2026
-- **Reconciliation:** all 36 files reconciled (rows read = rows loaded + rejected, and control totals match)
-- **Flag rate:** 2.31% of rows flagged as review candidates, not confirmed errors
-- **Hand check:** a 15-row sample traced to the raw files. 8 real issues (all 7 exact duplicates and the zero-amount row), 2 false alarms, 5 unresolved. Probable-duplicate flags were the noisiest rule.
-
-![Data quality overview](docs/dashboard_1.png)
-![Spend and concentration](docs/dashboard_2.png)
-![Review queue](docs/dashboard_3.png)
-
-More: [docs/CASE_STUDY.md](docs/CASE_STUDY.md) | [docs/quality_report.md](docs/quality_report.md) | `UK_Gov_Spend_Quality.pbix`
-
-The code and its 15 unit tests also pass on a small synthetic fixture (used for testing only).
-
----
 
 ## What it does
 
@@ -90,15 +87,6 @@ The code and its 15 unit tests also pass on a small synthetic fixture (used for 
 | Reconcile | Per file: rows read = rows loaded + rows rejected, and control totals match between parsing and the database | `pipeline.py` → `reconciliation` table |
 | Analyse | SQL views using CTEs and window functions (`LAG`, `RANK`, running `SUM`) for month-on-month spend, supplier concentration, flag summaries | `src/spendqa/sql/analysis.sql` |
 | Report | Power BI-ready CSVs, three charts, and a findings report where every number is computed from the data | `src/spendqa/report.py` |
-
-## Quick start
-
-```bash
-pip install -r requirements.txt
-python -m unittest discover -s tests -v           # 15 tests
-python tests/fixtures.py data/sample              # tiny synthetic fixture
-python run_pipeline.py --raw data/sample --out outputs_sample   # smoke test only
-```
 
 ## Reproduce it on real data
 
@@ -130,6 +118,8 @@ python run_pipeline.py --raw data/sample --out outputs_sample   # smoke test onl
   contracts, regular batches) trigger many false alarms. That is why they are labelled "review candidates".
 - **Outlier check** is a robust z-score on log amounts per department and is only a screening aid.
 - **Filename-derived month** is used for the "date outside file period" check, and only when the filename contains a recognisable month.
+- **Unmapped columns:** some optional fields (contract number, project code, supplier postcode and similar) are
+  not yet mapped into the schema. The report lists them so they can be added to `config/column_aliases.json`.
 - Files that fail header detection are reported in the `files` table, not skipped silently.
 
 ## Possible extensions
@@ -156,7 +146,6 @@ docs/CASE_STUDY.md           results, hand check and limitations
 docs/quality_report.md       generated findings report
 UK_Gov_Spend_Quality.pbix    Power BI dashboard
 ```
-
 
 ## Licence
 
