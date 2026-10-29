@@ -4,3 +4,11 @@ services:
     volumes:
       - ./data:/app/data
       - ./outputs:/app/outputs
+
+  demo:
+    build: .
+    profiles: ["demo"]
+    command: ["python", "run_pipeline.py", "--raw", "data/sample", "--out", "outputs_sample"]
+    volumes:
+      - ./data:/app/data
+      - ./outputs_sample:/app/outputs_sample

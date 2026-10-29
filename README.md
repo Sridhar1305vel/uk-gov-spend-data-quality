@@ -8,6 +8,57 @@ lost, and flags data-quality problems for review.
 column names, encodings, delimiters, date formats and amount formats. Cleaning that reliably,
 and *proving* the result is complete, is the core of data-quality and reconciliation work.
 
+![Tests](https://github.com/Sridhar1305vel/uk-gov-spend-data-quality/actions/workflows/tests.yml/badge.svg)
+
+## Quick start (Docker)
+
+**Requirements:** [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+
+```bash
+git clone https://github.com/Sridhar1305vel/uk-gov-spend-data-quality.git
+cd uk-gov-spend-data-quality
+```
+
+**Try it on the included sample data (one command, no downloads):**
+
+```bash
+docker compose run --rm demo
+```
+
+The report and database are written to `outputs_sample/`.
+
+**Run on the real data:**
+
+1. Download the monthly "spend over £25,000" CSV files from
+   [data.gov.uk](https://www.data.gov.uk/) and place them in one sub-folder per department:
+   `data/raw/DfT/`, `data/raw/HMRC/`, `data/raw/cabinet_office/`
+2. Run:
+   ```bash
+   docker compose up --build
+   ```
+3. Results are written to `outputs/`: `quality_report.md`, `spend.db`, and the charts.
+
+The raw data files are not stored in this repository.
+
+## Run without Docker
+
+```bash
+python -m venv .venv
+.venv\Scripts\activate        # Windows (Mac/Linux: source .venv/bin/activate)
+python -m pip install -r requirements.txt
+python run_pipeline.py --raw data/sample --out outputs_sample
+```
+
+Use `python run_pipeline.py` with no arguments to process `data/raw` into `outputs/`.
+
+## Run the tests
+
+```bash
+python -m pip install pytest
+python -m pytest -v
+```
+
+Tests also run automatically on every push through GitHub Actions.
 ## Results (real data)
 
 - **Scope:** 3 departments (DfT, HMRC, Cabinet Office), 36 files, 52,703 rows, January 2025 to mid-2026
@@ -102,6 +153,7 @@ docs/CASE_STUDY.md           results, hand check and limitations
 docs/quality_report.md       generated findings report
 UK_Gov_Spend_Quality.pbix    Power BI dashboard
 ```
+
 
 ## Licence
 
