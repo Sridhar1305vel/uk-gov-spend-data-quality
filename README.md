@@ -8,7 +8,10 @@ lost, and flags data-quality problems for review.
 column names, encodings, delimiters, date formats and amount formats. Cleaning that reliably,
 and *proving* the result is complete, is the core of data-quality and reconciliation work.
 
+
 ![Tests](https://github.com/Sridhar1305vel/uk-gov-spend-data-quality/actions/workflows/tests.yml/badge.svg)
+
+   One-line description of the project...
 
 ## Quick start (Docker)
 
